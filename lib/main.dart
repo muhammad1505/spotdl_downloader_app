@@ -37,10 +37,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _callPython() async {
-    final python = await Chaquopy.load('spotdl_service');
-    final result = await python.call('hello_python');
+    final result = await Chaquopy.executeCode('import spotdl_service\nprint(spotdl_service.hello_python())');
     setState(() {
-      _pythonResponse = result;
+      _pythonResponse = result['textOutput'] ?? 'Error';
     });
   }
 
