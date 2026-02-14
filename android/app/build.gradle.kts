@@ -1,9 +1,9 @@
 plugins {
     id("com.android.application")
-    id("com.chaquo.python")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.chaquo.python")
 }
 
 android {
