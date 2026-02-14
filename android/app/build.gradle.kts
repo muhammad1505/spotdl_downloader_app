@@ -35,6 +35,17 @@ android {
         }
     }
 
+    sourceSets {
+        getByName("main") {
+            python.srcDir("src/main/python")
+        }
+    }
+
+    python {
+        version = "3.8"
+        buildPython("build.py")
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.

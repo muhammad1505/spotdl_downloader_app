@@ -14,15 +14,6 @@ allprojects {
         mavenCentral()
         maven { url = uri("https://chaquo.com/maven") }
     }
-    
-    afterEvaluate {
-        project.plugins.withId("com.chaquo.python") {
-            project.extensions.getByType<com.chaquo.python.ChaquopyExtension>().apply {
-                version = "3.8"
-                buildPython("build.py")
-            }
-        }
-    }
 }
 
 val newBuildDir: Directory =
