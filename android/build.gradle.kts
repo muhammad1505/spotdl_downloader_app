@@ -1,10 +1,3 @@
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven { url = uri("https://chaquo.com/maven") }
-    }
-}
 
 buildscript {
     dependencies {
