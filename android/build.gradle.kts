@@ -1,3 +1,9 @@
+buildscript {
+    dependencies {
+        classpath("com.android.tools.build:gradle:7.4.2")
+    }
+}
+
 plugins {
     id("com.chaquo.python") version "15.0.1" apply false
 }
