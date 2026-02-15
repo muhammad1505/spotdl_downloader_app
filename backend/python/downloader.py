@@ -138,7 +138,7 @@ def start_download(
         "message": "Preparing download...",
     })
 
-    tmp_dir = tempfile.mkdtemp(prefix="spotdl_")
+    tmp_dir = tempfile.mkdtemp(prefix="spotify_")
     output_template = os.path.join(tmp_dir, "%(title)s.%(ext)s")
 
     def progress_hook(d):

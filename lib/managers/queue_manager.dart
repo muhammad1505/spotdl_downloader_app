@@ -160,7 +160,7 @@ class QueueManager extends ChangeNotifier {
     final customDir = _settingsService.outputDirectory;
     if (customDir.isNotEmpty) return customDir;
     final dir = await getExternalStorageDirectory();
-    return '${dir?.path ?? '/storage/emulated/0'}/SpotDL';
+    return '${dir?.path ?? '/storage/emulated/0'}/SpotifyDownloader';
   }
 
   @override

@@ -113,7 +113,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildTile(
             'Output directory',
             Icons.folder_rounded,
-            _s.outputDirectory.isEmpty ? '/storage/emulated/0/SpotDL' : _s.outputDirectory,
+            _s.outputDirectory.isEmpty
+                ? '/storage/emulated/0/SpotifyDownloader'
+                : _s.outputDirectory,
             onTap: () {
               // TODO: Implement directory picker
               ScaffoldMessenger.of(context).showSnackBar(
