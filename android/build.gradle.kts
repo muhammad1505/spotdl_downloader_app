@@ -1,3 +1,10 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://chaquo.com/maven") }
+    }
+}
 
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
