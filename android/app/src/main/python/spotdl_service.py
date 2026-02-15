@@ -10,6 +10,13 @@ try:
 except ImportError:
     yt_dlp = None  # pyre-ignore[9]
 
+try:
+    from spotdl import Spotdl  # pyre-ignore[21]
+    from spotdl.types.options import DownloaderOptions  # pyre-ignore[21]
+except Exception:
+    Spotdl = None  # pyre-ignore[9]
+    DownloaderOptions = None  # pyre-ignore[9]
+
 _download_thread = None
 _cancel_flag = False
 _event_sink = None
@@ -111,75 +118,44 @@ def start_download(url, output_dir, quality='320', skip_existing=True,
     _emit('downloading', 0, 'Starting download...', 'info')
 
     try:
-        if yt_dlp is None:
-            _emit('error', 0, 'yt-dlp is not available. Check build config.', 'error')
+        if Spotdl is None or DownloaderOptions is None:
+            _emit('error', 0, 'spotdl is not available. Check build config.', 'error')
             return
 
-        content_type, content_id = _extract_spotify_id(url)
+        _emit('downloading', 3, 'Preparing spotdl...', 'info')
 
-        # For Spotify URLs, we search YouTube with the track info
-        # yt-dlp supports ytsearch: prefix for YouTube searches
-        search_query = f"ytsearch:{url}"
-        _emit('downloading', 3, 'Fetching Spotify metadata...', 'info')
-        title = _fetch_spotify_oembed_title(url)
-        if title:
-            search_query = f"ytsearch:{title}"
-            _emit('downloading', 4, f'Using search query: {title}', 'info')
+        audio_quality = quality
+        options = DownloaderOptions(
+            output=output_dir,
+            bitrate=audio_quality,
+            save_file=None,
+            overwrite=not skip_existing,
+            print_errors=True,
+            ffmpeg="ffmpeg",
+            m3u=False,
+            log_level="INFO",
+            use_ytm_data=True,
+            threads=1,
+        )
+        spotdl = Spotdl(options)
 
-        _emit('downloading', 5, 'Searching for audio...', 'info')
+        _emit('downloading', 10, 'Fetching metadata...', 'info')
+        songs = spotdl.search([url])
+        if not songs:
+            _emit('error', 0, 'No tracks found for URL.', 'error')
+            return
 
-        # Map quality to audio bitrate
-        bitrate_map = {'128': '128', '192': '192', '320': '320'}
-        audio_quality = bitrate_map.get(quality, '320')
+        _emit('downloading', 20, f'Found {len(songs)} track(s).', 'info')
 
-        # Progress hook for yt-dlp
-        def progress_hook(d):
+        for index, song in enumerate(songs, start=1):
             if _cancel_flag:
                 raise Exception("Download cancelled by user")
+            title = getattr(song, "name", "Unknown Track")
+            artist = ", ".join(getattr(song, "artists", []) or [])
+            _emit('downloading', 25, f'Downloading {index}/{len(songs)}: {title} - {artist}', 'info')
+            spotdl.download(song)
 
-            if d['status'] == 'downloading':
-                total = d.get('total_bytes') or d.get('total_bytes_estimate', 0)
-                downloaded = d.get('downloaded_bytes', 0)
-                if total > 0:
-                    pct = int((downloaded / total) * 90) + 5  # 5-95%
-                else:
-                    pct = 10
-                speed = d.get('speed', 0)
-                speed_str = f"{speed / 1024:.0f} KB/s" if speed else "..."
-                _emit('downloading', pct,
-                      f"Downloading... {pct}% ({speed_str})", 'info')
-
-            elif d['status'] == 'finished':
-                _emit('converting', 95, 'Converting audio...', 'info')
-
-        postprocessors = [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': audio_quality,
-        }]
-
-        if embed_art:
-            postprocessors.append({
-                'key': 'EmbedThumbnail',
-            })
-
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'outtmpl': os.path.join(output_dir, '%(title)s.%(ext)s'),
-            'postprocessors': postprocessors,
-            'progress_hooks': [progress_hook],
-            'quiet': True,
-            'no_warnings': True,
-            'writethumbnail': embed_art,
-            'noplaylist': content_type == 'track',
-        }
-
-        if skip_existing:
-            ydl_opts['download_archive'] = os.path.join(output_dir, '.downloaded')
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # pyre-ignore[16]
-            _emit('downloading', 10, 'Fetching metadata...', 'info')
-            ydl.download([search_query])
+        _emit('converting', 95, 'Finalizing files...', 'info')
 
         if not _cancel_flag:
             _emit('completed', 100, 'Download completed successfully!', 'success')
