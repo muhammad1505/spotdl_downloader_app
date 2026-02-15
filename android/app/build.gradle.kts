@@ -16,8 +16,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+    kotlin {
+        jvmToolchain(17)
     }
 
     defaultConfig {
@@ -28,23 +28,8 @@ android {
         versionName = flutter.versionName
 
         ndk {
-            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
-        }
-    }
-
-    sourceSets {
-        getByName("main") {
-            python.srcDir("src/main/python")
-        }
-    }
-
-    chaquopy {
-        defaultConfig {
-            version = "3.12"
-
-            pip {
-                install("spotdl")
-            }
+            // Python 3.12 only supports 64-bit ABIs
+            abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
         }
     }
 
@@ -65,8 +50,19 @@ android {
         abi {
             isEnable = true
             reset()
-            include("armeabi-v7a", "arm64-v8a")
+            include("arm64-v8a")
             isUniversalApk = true
+        }
+    }
+}
+
+// Chaquopy configuration (top-level block in v17+)
+chaquopy {
+    defaultConfig {
+        version = "3.12"
+
+        pip {
+            install("spotdl")
         }
     }
 }
