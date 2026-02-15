@@ -5,6 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:spotdl_downloader/main.dart';
+import 'package:spotdl_downloader/managers/analytics_manager.dart';
+import 'package:spotdl_downloader/managers/queue_manager.dart';
+import 'package:spotdl_downloader/models/download_task.dart';
 import 'package:spotdl_downloader/services/download_service.dart';
 import 'package:spotdl_downloader/services/settings_service.dart';
 import 'package:spotdl_downloader/models/download_item.dart';
@@ -30,6 +33,34 @@ class FakeStorageService extends StorageService {
   Future<int> deleteDownload(int id) async => 0;
 }
 
+class FakeQueueManager extends ChangeNotifier implements QueueManager {
+  final List<DownloadTask> _tasks = [];
+
+  @override
+  List<DownloadTask> get tasks => List.unmodifiable(_tasks);
+
+  @override
+  Future<String> enqueue(String url,
+      {String quality = '320',
+      bool skipExisting = true,
+      bool embedArt = true,
+      bool normalize = false}) async {
+    return 'test-id';
+  }
+
+  @override
+  void pauseTask(String id) {}
+
+  @override
+  void resumeTask(String id) {}
+
+  @override
+  void cancelTask(String id) {}
+
+  @override
+  void cancelAll() {}
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -48,6 +79,12 @@ void main() {
             create: (_) => DownloadService(
               settingsService: settingsService,
             ),
+          ),
+          ChangeNotifierProvider<QueueManager>(
+            create: (_) => FakeQueueManager(),
+          ),
+          ChangeNotifierProvider<AnalyticsManager>(
+            create: (_) => AnalyticsManager(storageService: fakeStorage),
           ),
         ],
         child: MaterialApp(
