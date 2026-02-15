@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:spotdl_downloader/main.dart';
 import 'package:spotdl_downloader/services/download_service.dart';
@@ -33,6 +34,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Bottom navigation switches between all screens', (tester) async {
+    GoogleFonts.config.allowRuntimeFetching = false;
     SharedPreferences.setMockInitialValues({});
     final settingsService = SettingsService();
     await settingsService.init();

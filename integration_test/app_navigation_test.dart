@@ -1,11 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:spotdl_downloader/main.dart' as app;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Navigate between main menus', (tester) async {
+    GoogleFonts.config.allowRuntimeFetching = false;
     app.main();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
