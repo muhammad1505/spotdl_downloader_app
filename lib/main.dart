@@ -61,8 +61,13 @@ class SpotDLApp extends StatelessWidget {
 
 class MainShell extends StatefulWidget {
   final SettingsService settingsService;
+  final StorageService? libraryStorageService;
 
-  const MainShell({super.key, required this.settingsService});
+  const MainShell({
+    super.key,
+    required this.settingsService,
+    this.libraryStorageService,
+  });
 
   @override
   State<MainShell> createState() => _MainShellState();
@@ -78,7 +83,7 @@ class _MainShellState extends State<MainShell> {
     super.initState();
     _screens = [
       const HomeScreen(),
-      const LibraryScreen(),
+      LibraryScreen(storageService: widget.libraryStorageService),
       SettingsScreen(settingsService: widget.settingsService),
       const AboutScreen(),
     ];

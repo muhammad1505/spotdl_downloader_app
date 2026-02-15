@@ -84,10 +84,12 @@ class MainActivity : FlutterActivity() {
             object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                     eventSink = events
+                    PythonEmitter.sink = events
                 }
 
                 override fun onCancel(arguments: Any?) {
                     eventSink = null
+                    PythonEmitter.sink = null
                 }
             }
         )
@@ -108,37 +110,15 @@ class MainActivity : FlutterActivity() {
                 val py = Python.getInstance()
                 val module = py.getModule("spotdl_service")
 
-                // Call Python to start download - it prints JSON lines to stdout
-                // We use Chaquopy's redirected stdout to capture output
-                val pyStdout = py.getModule("io").callAttr("StringIO")
-                val pySys = py.getModule("sys")
-                val originalStdout = pySys.get("stdout")
-                pySys.put("stdout", pyStdout)
-
-                try {
-                    module.callAttr(
-                        "start_download",
-                        url,
-                        outputDir,
-                        quality,
-                        skipExisting,
-                        embedArt,
-                        normalize
-                    )
-                } finally {
-                    pySys.put("stdout", originalStdout)
-                }
-
-                // Read captured output
-                val output = pyStdout.callAttr("getvalue").toString()
-                val lines = output.split("\n").filter { it.isNotBlank() }
-
-                for (line in lines) {
-                    if (!isActive) break
-                    withContext(Dispatchers.Main) {
-                        eventSink?.success(line)
-                    }
-                }
+                module.callAttr(
+                    "start_download",
+                    url,
+                    outputDir,
+                    quality,
+                    skipExisting,
+                    embedArt,
+                    normalize
+                )
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     eventSink?.success(

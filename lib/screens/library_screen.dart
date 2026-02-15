@@ -6,14 +6,16 @@ import '../services/storage_service.dart';
 import '../widgets/library_item_card.dart';
 
 class LibraryScreen extends StatefulWidget {
-  const LibraryScreen({super.key});
+  final StorageService? storageService;
+
+  const LibraryScreen({super.key, this.storageService});
 
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
-  final StorageService _storageService = StorageService();
+  late final StorageService _storageService;
   final TextEditingController _searchController = TextEditingController();
 
   List<DownloadItem> _downloads = [];
@@ -24,6 +26,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   @override
   void initState() {
     super.initState();
+    _storageService = widget.storageService ?? StorageService();
     _loadDownloads();
   }
 

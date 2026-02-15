@@ -38,12 +38,17 @@ def validate_url(url):
 
 def _emit(status, progress, message, msg_type='info'):
     """Emit a JSON status line."""
-    print(json.dumps({
+    payload = json.dumps({
         'status': status,
         'progress': progress,
         'message': message,
         'type': msg_type
-    }), flush=True)
+    })
+    try:
+        from com.example.spotdl_downloader import PythonEmitter
+        PythonEmitter.emit(payload)
+    except Exception:
+        print(payload, flush=True)
 
 
 def _extract_spotify_id(url):
