@@ -46,14 +46,8 @@ android {
         }
     }
 
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("arm64-v8a")
-            isUniversalApk = true
-        }
-    }
+    // NOTE: Flutter's `--split-per-abi` handles ABI splits. Avoid manual
+    // splits here to keep output paths consistent for Flutter tooling.
 }
 
 // Chaquopy configuration (top-level block in v17+)
