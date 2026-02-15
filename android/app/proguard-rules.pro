@@ -16,6 +16,5 @@
 # Keep our service
 -keep class com.example.spotdl_downloader.DownloadForegroundService { *; }
 
-# Play Core (Flutter deferred components references these but we don't use them)
--dontwarn com.google.android.play.core.splitinstall.**
--dontwarn com.google.android.play.core.tasks.**
+# Play Core (Flutter references these but we don't use deferred components)
+-dontwarn com.google.android.play.core.**
