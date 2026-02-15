@@ -46,7 +46,6 @@ void main() {
         providers: [
           ChangeNotifierProvider<DownloadService>(
             create: (_) => DownloadService(
-              storageService: fakeStorage,
               settingsService: settingsService,
             ),
           ),

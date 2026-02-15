@@ -166,8 +166,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               const SizedBox(height: 20),
 
               // Download Button
-              if (!downloadService.isDownloading)
-                SizedBox(
+              SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: AnimatedBuilder(

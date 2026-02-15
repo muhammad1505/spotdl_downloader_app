@@ -41,7 +41,6 @@ void main() async {
       providers: [
         ChangeNotifierProvider(
           create: (_) => DownloadService(
-            storageService: storageService,
             settingsService: settingsService,
           ),
         ),
