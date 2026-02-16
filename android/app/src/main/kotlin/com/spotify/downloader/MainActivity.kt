@@ -172,7 +172,11 @@ class MainActivity : FlutterActivity() {
                     startForegroundDownload(task)
                     val py = Python.getInstance()
                     val module = py.getModule("downloader")
-                    module.callAttr("set_event_sink", PythonEventSink())
+                    withContext(Dispatchers.Main) {
+                        eventSink?.success(
+                            """{"id":"${task.id}","status":"downloading","progress":2,"message":"Python module loaded"}"""
+                        )
+                    }
                     module.callAttr(
                         "start_download",
                         task.id,
@@ -183,10 +187,15 @@ class MainActivity : FlutterActivity() {
                         task.embedArt,
                         task.normalize
                     )
+                    withContext(Dispatchers.Main) {
+                        eventSink?.success(
+                            """{"id":"${task.id}","status":"processing","progress":95,"message":"Python task finished"}"""
+                        )
+                    }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
                         eventSink?.success(
-                            """{"id":"${task.id}","status":"error","progress":0,"message":"${e.message?.replace("\"", "\\\"")}" }"""
+                            """{"id":"${task.id}","status":"error","progress":0,"message":"Native error: ${e.message?.replace("\"", "\\\"")}" }"""
                         )
                     }
                 } finally {
