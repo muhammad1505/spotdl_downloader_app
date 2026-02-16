@@ -48,8 +48,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ${{ env.PUB_CACHE }}
-            .dart_tool
+            ~/.pub-cache
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-pub-
