@@ -5,6 +5,7 @@ import '../core/theme.dart';
 import '../core/constants.dart';
 import '../services/download_service.dart';
 import '../managers/queue_manager.dart';
+import '../models/download_task.dart';
 import '../widgets/url_input.dart';
 import '../widgets/download_options_card.dart';
 
@@ -230,18 +231,37 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   initialItemCount: queueManager.tasks.length,
                   itemBuilder: (context, index, animation) {
                     final task = queueManager.tasks[index];
+                    final isRunning = task.status == DownloadTaskStatus.downloading ||
+                        task.status == DownloadTaskStatus.processing;
+                    final canResume = task.status == DownloadTaskStatus.paused ||
+                        task.status == DownloadTaskStatus.queued;
                     return SizeTransition(
                       sizeFactor: animation,
                       child: Card(
                         child: ListTile(
                           title: Text(task.title),
-                          subtitle: Text('${task.message} (${task.progress}%)'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('${task.message} (${task.progress}%)'),
+                              const SizedBox(height: 6),
+                              LinearProgressIndicator(
+                                value: task.progress <= 0 ? null : task.progress / 100,
+                                minHeight: 4,
+                              ),
+                            ],
+                          ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.pause_rounded),
-                                onPressed: () => queueManager.pauseTask(task.id),
+                                icon: Icon(
+                                  isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                ),
+                                onPressed: isRunning
+                                    ? () => queueManager.pauseTask(task.id)
+                                    : (canResume ? () => queueManager.resumeTask(task.id) : null),
                               ),
                               IconButton(
                                 icon: const Icon(Icons.close_rounded),

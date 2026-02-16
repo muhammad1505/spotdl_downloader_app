@@ -69,21 +69,25 @@ class QueueManager extends ChangeNotifier {
 
   void pauseTask(String id) {
     _pythonService.pauseTask(id);
+    _appendLog('Queue: pause task $id');
     _updateTask(id, status: DownloadTaskStatus.paused, message: 'Paused');
   }
 
   void resumeTask(String id) {
     _pythonService.resumeTask(id);
+    _appendLog('Queue: resume task $id');
     _updateTask(id, status: DownloadTaskStatus.queued, message: 'Queued');
   }
 
   void cancelTask(String id) {
     _pythonService.cancelTask(id);
+    _appendLog('Queue: cancel task $id');
     _updateTask(id, status: DownloadTaskStatus.cancelled, message: 'Cancelled');
   }
 
   void cancelAll() {
     _pythonService.cancelAll();
+    _appendLog('Queue: cancel all');
     for (final task in _tasks) {
       _updateTask(task.id, status: DownloadTaskStatus.cancelled, message: 'Cancelled');
     }

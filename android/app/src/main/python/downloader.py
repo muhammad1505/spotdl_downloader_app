@@ -128,14 +128,25 @@ def start_download(
     _cancel_flags[task_id] = False
     os.makedirs(output_dir, exist_ok=True)
 
+    _emit({
+        "id": task_id,
+        "status": "downloading",
+        "progress": 2,
+        "message": "Resolving Spotify metadata...",
+    })
+
     title_hint = _fetch_oembed_title(url)
-    search_query = f"ytsearch:{title_hint}" if title_hint else f"ytsearch:{url}"
+    if title_hint:
+        search_query = f"ytsearch1:{title_hint}"
+    else:
+        # Fallback: spotify URL as query text (less accurate, but keeps flow alive).
+        search_query = f"ytsearch1:{url}"
 
     _emit({
         "id": task_id,
         "status": "downloading",
-        "progress": 3,
-        "message": "Preparing download...",
+        "progress": 5,
+        "message": "Searching matching audio source...",
     })
 
     tmp_dir = tempfile.mkdtemp(prefix="spotify_")
@@ -170,12 +181,21 @@ def start_download(
         "no_warnings": True,
         "writethumbnail": embed_art,
         "noplaylist": True,
+        "socket_timeout": 20,
+        "retries": 3,
+        "fragment_retries": 3,
     }
 
     if skip_existing:
         ydl_opts["download_archive"] = os.path.join(output_dir, ".downloaded")
 
     try:
+        _emit({
+            "id": task_id,
+            "status": "downloading",
+            "progress": 8,
+            "message": "Connecting to source...",
+        })
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # pyre-ignore[16]
             info = ydl.extract_info(search_query, download=True)
 
