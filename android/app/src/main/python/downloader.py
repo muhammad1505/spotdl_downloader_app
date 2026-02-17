@@ -116,6 +116,32 @@ def _tag_mp3(path: str, title: str, artist: str, album: str, cover_path: Optiona
             pass
 
 
+def _pick_downloaded_file(info: Dict, tmp_dir: str) -> Optional[str]:
+    try:
+        downloads = info.get("requested_downloads") or []
+        if downloads:
+            path = downloads[0].get("filepath")
+            if path and os.path.exists(path):
+                return path
+    except Exception:
+        pass
+    path = info.get("_filename") or info.get("filepath")
+    if path and os.path.exists(path):
+        return path
+    try:
+        candidates = []
+        for name in os.listdir(tmp_dir):
+            full = os.path.join(tmp_dir, name)
+            if os.path.isfile(full):
+                candidates.append(full)
+        if not candidates:
+            return None
+        candidates.sort(key=lambda p: os.path.getmtime(p), reverse=True)
+        return candidates[0]
+    except Exception:
+        return None
+
+
 def cancel_task(task_id: str):
     _cancel_flags[task_id] = True
 
@@ -227,7 +253,14 @@ def start_download(
         if "entries" in info and info["entries"]:
             info = info["entries"][0]
 
-        src_path = ydl.prepare_filename(info)
+        src_path = _pick_downloaded_file(info, tmp_dir) or ydl.prepare_filename(info)
+        if not os.path.exists(src_path):
+            return _finalize({
+                "id": task_id,
+                "status": "error",
+                "progress": 0,
+                "message": f"Download output not found: {src_path}",
+            })
         base_name = _safe_filename(info.get("title") or "download")
         dest_path = os.path.join(output_dir, f"{base_name}.mp3")
 
