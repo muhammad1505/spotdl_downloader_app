@@ -121,14 +121,14 @@ class MainActivity : FlutterActivity() {
         }
         sendBroadcast(intent)
 
-        val timeoutMs = TimeUnit.MINUTES.toMillis(10)
+        val timeoutMs = TimeUnit.SECONDS.toMillis(45)
         val start = System.currentTimeMillis()
         while (!exitFile.exists()) {
             if (System.currentTimeMillis() - start > timeoutMs) {
                 return mapOf(
                     "exitCode" to 124,
                     "stdout" to "",
-                    "stderr" to "Command timeout",
+                    "stderr" to "Command timeout. Check Termux storage permission and enable 'Allow external apps' in Termux settings.",
                 )
             }
             delay(300)

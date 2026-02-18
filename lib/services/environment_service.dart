@@ -90,6 +90,12 @@ class EnvironmentService {
     if (!Platform.isAndroid) {
       return CommandResult(exitCode: 1, stdout: '', stderr: 'Not Android');
     }
+    onLog?.call('Probing Termux command bridge...');
+    final probe = await executor.execute('echo termux_ok');
+    if (!probe.isSuccess) {
+      onLog?.call('Termux command bridge failed');
+      return probe;
+    }
     onLog?.call('Checking Termux...');
     final termuxOk = await isTermuxInstalled();
     if (!termuxOk) {
