@@ -40,7 +40,10 @@ void main() async {
 
   final executor = resolveExecutor();
   final envService = EnvironmentService(executor: executor);
-  final backend = TermuxDownloadBackend(executor: executor);
+  final backend = TermuxDownloadBackend(
+    executor: executor,
+    resolveDistro: envService.resolveDistro,
+  );
   final queueEngine = QueueEngine(backend: backend);
 
   runApp(

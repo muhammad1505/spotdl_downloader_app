@@ -4,6 +4,7 @@ import '../platform_bridge/command_executor.dart';
 
 class EnvironmentService {
   final CommandExecutor executor;
+  static const List<String> _preferredDistros = ['ubuntu', 'debian', 'archlinux'];
 
   EnvironmentService({required this.executor});
 
@@ -15,8 +16,9 @@ class EnvironmentService {
 
   Future<bool> isSpotdlAvailable() async {
     if (Platform.isAndroid) {
+      final distro = await resolveDistro();
       final result = await executor.execute(
-        'proot-distro login ubuntu -- command -v spotdl',
+        'proot-distro login $distro -- command -v spotdl',
       );
       return result.isSuccess && result.stdout.trim().isNotEmpty;
     }
@@ -26,7 +28,8 @@ class EnvironmentService {
 
   Future<CommandResult> installSpotdl() async {
     if (Platform.isAndroid) {
-      return executor.execute('proot-distro login ubuntu -- pip install spotdl');
+      final distro = await resolveDistro();
+      return executor.execute('proot-distro login $distro -- pip install spotdl');
     }
     if (Platform.isWindows) {
       return executor.execute('python -m pip install spotdl');
@@ -53,5 +56,27 @@ class EnvironmentService {
 
   Future<CommandResult> installDistro(String name) async {
     return executor.execute('proot-distro install $name');
+  }
+
+  Future<String> resolveDistro() async {
+    final result = await executor.execute('proot-distro list');
+    if (!result.isSuccess) return _preferredDistros.first;
+    for (final distro in _preferredDistros) {
+      if (result.stdout.contains(distro)) return distro;
+    }
+    return _preferredDistros.first;
+  }
+
+  Future<CommandResult> installSpotdlWithFfmpeg() async {
+    if (!Platform.isAndroid) {
+      return CommandResult(exitCode: 1, stdout: '', stderr: 'Not Android');
+    }
+    final distro = await resolveDistro();
+    final cmd = [
+      'proot-distro login $distro -- apt update',
+      'proot-distro login $distro -- apt install -y python3-pip ffmpeg',
+      'proot-distro login $distro -- python3 -m pip install spotdl',
+    ].join(' && ');
+    return executor.execute(cmd);
   }
 }

@@ -76,6 +76,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _installSpotdlWithFfmpeg() async {
+    final env = context.read<EnvironmentService>();
+    final res = await env.installSpotdlWithFfmpeg();
+    if (!mounted) return;
+    final message = res.isSuccess ? 'spotdl + ffmpeg installed' : 'Install failed: ${res.stderr}';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -239,6 +249,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Icons.cloud_download_rounded,
             'proot-distro install ubuntu',
             onTap: _installDistro,
+          ),
+          _buildTile(
+            'Install spotdl + ffmpeg',
+            Icons.download_for_offline_rounded,
+            'Install python3-pip, ffmpeg, spotdl inside proot',
+            onTap: _installSpotdlWithFfmpeg,
           ),
           const SizedBox(height: 16),
 

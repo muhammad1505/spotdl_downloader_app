@@ -23,8 +23,15 @@ class DownloadRequest {
 class DownloadResult {
   final bool success;
   final String message;
+  final String stdout;
+  final String stderr;
 
-  const DownloadResult({required this.success, required this.message});
+  const DownloadResult({
+    required this.success,
+    required this.message,
+    this.stdout = '',
+    this.stderr = '',
+  });
 }
 
 abstract class DownloadBackend {
@@ -33,18 +40,31 @@ abstract class DownloadBackend {
 
 class TermuxDownloadBackend implements DownloadBackend {
   final CommandExecutor executor;
+  final Future<String> Function() resolveDistro;
 
-  TermuxDownloadBackend({required this.executor});
+  TermuxDownloadBackend({required this.executor, required this.resolveDistro});
 
   @override
   Future<DownloadResult> runDownload(DownloadRequest request) async {
+    final distro = await resolveDistro();
     final outputArg = request.outputDir.replaceAll('"', '\\"');
-    final cmd = 'spotdl "${request.url}" --output "$outputArg"';
+    final cmd =
+        'proot-distro login $distro -- spotdl "${request.url}" --output "$outputArg"';
     final res = await executor.execute(cmd);
     if (res.isSuccess) {
-      return const DownloadResult(success: true, message: 'Download completed');
+      return DownloadResult(
+        success: true,
+        message: 'Download completed',
+        stdout: res.stdout,
+        stderr: res.stderr,
+      );
     }
     final message = res.stderr.trim().isNotEmpty ? res.stderr.trim() : res.stdout.trim();
-    return DownloadResult(success: false, message: message.isEmpty ? 'Download failed' : message);
+    return DownloadResult(
+      success: false,
+      message: message.isEmpty ? 'Download failed' : message,
+      stdout: res.stdout,
+      stderr: res.stderr,
+    );
   }
 }

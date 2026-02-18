@@ -61,12 +61,27 @@ class QueueEngine {
       'progress': 5,
       'message': 'Starting...'
     });
+    var progress = 5;
+    final ticker = Stream.periodic(const Duration(seconds: 2));
+    final sub = ticker.listen((_) {
+      progress = (progress + 5).clamp(5, 90);
+      _events.add({
+        'id': request.id,
+        'status': 'downloading',
+        'progress': progress,
+        'message': 'Downloading...'
+      });
+    });
+
     final result = await backend.runDownload(request);
+    await sub.cancel();
+
+    final parsedMessage = _parseSpotdlOutput(result.stdout, result.message);
     _events.add({
       'id': request.id,
       'status': result.success ? 'completed' : 'error',
       'progress': result.success ? 100 : 0,
-      'message': result.message,
+      'message': parsedMessage,
     });
     _running = (_running - 1).clamp(0, 9999);
     _process();
@@ -80,5 +95,18 @@ class QueueEngine {
 
   void dispose() {
     _events.close();
+  }
+
+  String _parseSpotdlOutput(String stdout, String fallback) {
+    final percentMatches = RegExp(r'(\\d{1,3})%').allMatches(stdout);
+    int maxPct = 0;
+    for (final m in percentMatches) {
+      final val = int.tryParse(m.group(1) ?? '') ?? 0;
+      if (val > maxPct && val <= 100) maxPct = val;
+    }
+    if (maxPct > 0) {
+      return '$fallback (max $maxPct%)';
+    }
+    return fallback;
   }
 }
