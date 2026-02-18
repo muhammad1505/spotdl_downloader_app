@@ -115,6 +115,89 @@ class _MainShellState extends State<MainShell> {
       SettingsScreen(settingsService: widget.settingsService),
       const AboutScreen(),
     ];
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _runEnvironmentChecks();
+    });
+  }
+
+  Future<void> _runEnvironmentChecks() async {
+    final env = context.read<EnvironmentService>();
+    final logger = context.read<QueueManager>();
+    final settings = widget.settingsService;
+
+    if (!settings.envSetupDone) {
+      await _showFirstRunSetup(env, logger, settings);
+    } else {
+      _autoCheckEnvironment(env, logger);
+    }
+  }
+
+  Future<void> _showFirstRunSetup(
+    EnvironmentService env,
+    QueueManager logger,
+    SettingsService settings,
+  ) async {
+    final action = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Environment Setup'),
+          content: const Text(
+            'This app requires Termux + Termux:Tasker + proot-distro + spotdl. '
+            'Run one-click setup now?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Later'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Run Setup'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (action == true) {
+      logger.appendExternalLog('Setup: starting environment configuration');
+      final res = await env.oneClickSetup(
+        onLog: (msg) => logger.appendExternalLog('Setup: $msg'),
+      );
+      if (res.isSuccess) {
+        settings.envSetupDone = true;
+      }
+      if (mounted) {
+        final message = res.isSuccess
+            ? (res.stdout.isNotEmpty ? res.stdout : 'Setup complete')
+            : 'Setup failed: ${res.stderr}';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
+    }
+  }
+
+  Future<void> _autoCheckEnvironment(
+    EnvironmentService env,
+    QueueManager logger,
+  ) async {
+    logger.appendExternalLog('Env check: starting');
+    final termux = await env.isTermuxInstalled();
+    final tasker = await env.isTermuxTaskerInstalled();
+    final proot = await env.isProotDistroAvailable();
+    final distro = await env.resolveDistro();
+    final spotdl = await env.isSpotdlAvailable();
+    logger.appendExternalLog(
+      'Env check: Termux=${termux ? "OK" : "MISSING"} '
+      'Tasker=${tasker ? "OK" : "MISSING"} '
+      'proot=${proot ? "OK" : "MISSING"} '
+      'distro=$distro '
+      'spotdl=${spotdl ? "OK" : "MISSING"}',
+    );
   }
 
   @override

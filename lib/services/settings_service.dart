@@ -85,6 +85,13 @@ class SettingsService {
   set normalizeAudio(bool value) =>
       _p.setBool(AppConstants.keyNormalizeAudio, value);
 
+  // --- Environment ---
+
+  bool get envSetupDone =>
+      _p.getBool(AppConstants.keyEnvSetupDone) ?? false;
+  set envSetupDone(bool value) =>
+      _p.setBool(AppConstants.keyEnvSetupDone, value);
+
   // --- Reset ---
 
   Future<void> resetAll() async {

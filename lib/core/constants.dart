@@ -46,6 +46,7 @@ class AppConstants {
   static const String keySkipExisting = 'skip_existing';
   static const String keyEmbedArt = 'embed_art';
   static const String keyNormalizeAudio = 'normalize_audio';
+  static const String keyEnvSetupDone = 'env_setup_done';
 
   // Download Status
   static const String statusPending = 'pending';
