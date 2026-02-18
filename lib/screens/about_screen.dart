@@ -37,7 +37,7 @@ class AboutScreen extends StatelessWidget {
               ],
             ),
             child: const Icon(
-              Icons.music_note_rounded,
+              Icons.terminal_rounded,
               size: 48,
               color: Colors.white,
             ),
@@ -68,7 +68,7 @@ class AboutScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Text(
-              'Full Offline Mode',
+              'Cross-Platform CLI Manager',
               style: TextStyle(
                 color: AppTheme.spotifyGreen,
                 fontSize: 12,
@@ -77,6 +77,31 @@ class AboutScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 32),
+
+          // Overview
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Overview',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Flutter UI + Platform Adapters + spotdl CLI. Phase 1 focuses on Android using Termux + proot-distro.',
+                    style: TextStyle(
+                      color: AppTheme.spotifySubtle,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
 
           // Powered By
           const Align(
@@ -98,24 +123,24 @@ class AboutScreen extends StatelessWidget {
             '💙',
             'Flutter',
             'UI Framework by Google',
-            'Cross-platform native app development',
+            'Cross-platform app development',
           ),
           _buildPoweredByCard(
-            '🐍',
-            'Chaquopy',
-            'Python on Android',
-            'Embedded Python runtime for Android apps',
+            '📦',
+            'Termux + proot-distro',
+            'Android CLI runtime',
+            'Runs spotdl in a Linux distro on Android',
+          ),
+          _buildPoweredByCard(
+            '🎵',
+            'spotdl',
+            'CLI engine',
+            'Downloads media via CLI workflow',
           ),
           _buildPoweredByCard(
             '🎬',
-            'yt-dlp',
-            'Media Downloader',
-            'Audio/video download backend',
-          ),
-          _buildPoweredByCard(
-            '🔧',
             'FFmpeg',
-            'Media Processing',
+            'Media processing',
             'Audio conversion and processing',
           ),
           const SizedBox(height: 24),
@@ -184,7 +209,7 @@ class AboutScreen extends StatelessWidget {
 
           // Footer
           Text(
-            'Made with ❤️ for Music Lovers',
+            'Built for CLI-driven workflows',
             style: TextStyle(
               color: AppTheme.spotifySubtle.withAlpha(120),
               fontSize: 12,

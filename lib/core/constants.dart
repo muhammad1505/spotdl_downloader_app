@@ -6,10 +6,6 @@ class AppConstants {
   static const String appDescription = 'Full Offline Spotify Downloader';
   static const String githubUrl = 'https://github.com/muhammad1505/spotify_downloader';
 
-  // Method Channel
-  static const String methodChannel = 'com.spotify.downloader/bridge';
-  static const String eventChannel = 'com.spotify.downloader/progress';
-
   // Spotify URL Patterns
   static final RegExp spotifyTrackRegex = RegExp(
     r'(https?://open\.spotify\.com/(?:intl-[a-z]{2}/)?track/[a-zA-Z0-9]+|spotify:track:[a-zA-Z0-9]+)',
