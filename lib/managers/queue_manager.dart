@@ -30,6 +30,9 @@ class QueueManager extends ChangeNotifier {
         _appendLog('Stream error: $error');
       },
     );
+    _queueEngine.logs.listen((log) {
+      _appendLog(log);
+    });
   }
 
   List<DownloadTask> get tasks => List.unmodifiable(_tasks);
@@ -201,5 +204,9 @@ class QueueManager extends ChangeNotifier {
       _logs.removeRange(0, _logs.length - 200);
     }
     notifyListeners();
+  }
+
+  void appendExternalLog(String text) {
+    _appendLog(text);
   }
 }

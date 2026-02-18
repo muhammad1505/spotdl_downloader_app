@@ -8,6 +8,7 @@ class QueueEngine {
   final DownloadBackend backend;
   final StreamController<Map<String, dynamic>> _events =
       StreamController<Map<String, dynamic>>.broadcast();
+  final StreamController<String> _logs = StreamController<String>.broadcast();
 
   final Queue<DownloadRequest> _queue = Queue<DownloadRequest>();
   int _running = 0;
@@ -16,6 +17,7 @@ class QueueEngine {
   QueueEngine({required this.backend});
 
   Stream<Map<String, dynamic>> get events => _events.stream;
+  Stream<String> get logs => _logs.stream;
 
   Future<String> enqueue({
     required String url,
@@ -42,6 +44,7 @@ class QueueEngine {
       'progress': 0,
       'message': 'Queued',
     });
+    _logs.add('Queued: ${request.url}');
     _process();
     return id;
   }
@@ -61,6 +64,7 @@ class QueueEngine {
       'progress': 5,
       'message': 'Starting...'
     });
+    _logs.add('Start: ${request.url}');
     final outcome = await _runWithStreaming(request);
     _events.add({
       'id': request.id,
@@ -68,6 +72,7 @@ class QueueEngine {
       'progress': outcome.success ? 100 : 0,
       'message': outcome.message,
     });
+    _logs.add('Done: ${outcome.message}');
     _running = (_running - 1).clamp(0, 9999);
     _process();
   }
@@ -80,6 +85,7 @@ class QueueEngine {
 
   void dispose() {
     _events.close();
+    _logs.close();
   }
 
   Future<_RunOutcome> _runWithStreaming(DownloadRequest request) async {
@@ -97,6 +103,8 @@ class QueueEngine {
       final status = await termuxBackend.checkDownload(handle.id);
       if (status.stdout.isNotEmpty) lastStdout = status.stdout;
       if (status.stderr.isNotEmpty) lastStderr = status.stderr;
+      if (status.stdout.isNotEmpty) _logs.add(status.stdout);
+      if (status.stderr.isNotEmpty) _logs.add(status.stderr);
       final pct = _extractMaxPercent(lastStdout);
       if (pct > 0 && pct < 100) {
         _events.add({

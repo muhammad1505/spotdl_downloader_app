@@ -17,10 +17,14 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   SettingsService get _s => widget.settingsService;
+  bool _checkingEnv = false;
+  String _envStatus = '';
 
   Future<void> _checkTermux() async {
     final env = context.read<EnvironmentService>();
+    setState(() => _checkingEnv = true);
     final ok = await env.isTermuxInstalled();
+    setState(() => _checkingEnv = false);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(ok ? 'Termux detected' : 'Termux not installed')),
@@ -29,7 +33,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _checkSpotdl() async {
     final env = context.read<EnvironmentService>();
+    setState(() => _checkingEnv = true);
     final ok = await env.isSpotdlAvailable();
+    setState(() => _checkingEnv = false);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(ok ? 'spotdl ready' : 'spotdl not found')),
@@ -38,7 +44,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _installSpotdl() async {
     final env = context.read<EnvironmentService>();
+    setState(() => _checkingEnv = true);
     final res = await env.installSpotdl();
+    setState(() => _checkingEnv = false);
     if (!mounted) return;
     final message = res.isSuccess ? 'spotdl installed' : 'Install failed: ${res.stderr}';
     ScaffoldMessenger.of(context).showSnackBar(
@@ -48,7 +56,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _checkProot() async {
     final env = context.read<EnvironmentService>();
+    setState(() => _checkingEnv = true);
     final ok = await env.isProotDistroAvailable();
+    setState(() => _checkingEnv = false);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(ok ? 'proot-distro ready' : 'proot-distro not found')),
@@ -57,7 +67,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _installProot() async {
     final env = context.read<EnvironmentService>();
+    setState(() => _checkingEnv = true);
     final res = await env.installProotDistro();
+    setState(() => _checkingEnv = false);
     if (!mounted) return;
     final message = res.isSuccess ? 'proot-distro installed' : 'Install failed: ${res.stderr}';
     ScaffoldMessenger.of(context).showSnackBar(
@@ -68,7 +80,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _installDistro() async {
     final env = context.read<EnvironmentService>();
     const distro = 'ubuntu';
+    setState(() => _checkingEnv = true);
     final res = await env.installDistro(distro);
+    setState(() => _checkingEnv = false);
     if (!mounted) return;
     final message = res.isSuccess ? 'Distro $distro installed' : 'Install failed: ${res.stderr}';
     ScaffoldMessenger.of(context).showSnackBar(
@@ -78,7 +92,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _installSpotdlWithFfmpeg() async {
     final env = context.read<EnvironmentService>();
+    setState(() => _checkingEnv = true);
     final res = await env.installSpotdlWithFfmpeg();
+    setState(() => _checkingEnv = false);
     if (!mounted) return;
     final message = res.isSuccess ? 'spotdl + ffmpeg installed' : 'Install failed: ${res.stderr}';
     ScaffoldMessenger.of(context).showSnackBar(
@@ -88,12 +104,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _oneClickSetup() async {
     final env = context.read<EnvironmentService>();
+    setState(() => _checkingEnv = true);
     final res = await env.oneClickSetup();
+    setState(() => _checkingEnv = false);
     if (!mounted) return;
     final message = res.isSuccess ? 'Setup complete' : 'Setup failed: ${res.stderr}';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
+  }
+
+  Future<void> _refreshEnvStatus() async {
+    final env = context.read<EnvironmentService>();
+    setState(() => _checkingEnv = true);
+    final termux = await env.isTermuxInstalled();
+    final tasker = await env.isTermuxTaskerInstalled();
+    final proot = await env.isProotDistroAvailable();
+    final distro = await env.resolveDistro();
+    final spotdl = await env.isSpotdlAvailable();
+    setState(() => _checkingEnv = false);
+    _envStatus = [
+      'Termux: ${termux ? "OK" : "MISSING"}',
+      'Tasker: ${tasker ? "OK" : "MISSING"}',
+      'proot-distro: ${proot ? "OK" : "MISSING"}',
+      'Distro: $distro',
+      'spotdl: ${spotdl ? "OK" : "MISSING"}',
+    ].join(' | ');
+    if (!mounted) return;
+    setState(() {});
   }
 
   @override
@@ -224,6 +262,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Environment
           _buildSectionHeader('Environment'),
+          _buildTile(
+            'Refresh status',
+            Icons.refresh_rounded,
+            'Check Termux / Tasker / proot / distro / spotdl',
+            onTap: _refreshEnvStatus,
+          ),
+          if (_envStatus.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(left: 8, bottom: 12),
+              child: Text(
+                _envStatus,
+                style: TextStyle(fontSize: 12, color: AppTheme.spotifySubtle),
+              ),
+            ),
+          if (_checkingEnv)
+            const Padding(
+              padding: EdgeInsets.only(left: 8, bottom: 12),
+              child: Text('Checking environment...', style: TextStyle(fontSize: 12)),
+            ),
           _buildTile(
             'Check Termux',
             Icons.terminal_rounded,
