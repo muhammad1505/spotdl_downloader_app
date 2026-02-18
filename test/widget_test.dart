@@ -12,6 +12,8 @@ import 'package:spotify_downloader/services/download_service.dart';
 import 'package:spotify_downloader/services/settings_service.dart';
 import 'package:spotify_downloader/models/download_item.dart';
 import 'package:spotify_downloader/services/storage_service.dart';
+import 'package:spotify_downloader/services/environment_service.dart';
+import 'package:spotify_downloader/platform_bridge/command_executor.dart';
 
 class FakeStorageService extends StorageService {
   @override
@@ -68,12 +70,23 @@ class FakeQueueManager extends ChangeNotifier implements QueueManager {
   void appendExternalLog(String text) {}
 }
 
+class FakeEnvironmentService extends EnvironmentService {
+  FakeEnvironmentService() : super(executor: _NoopExecutor());
+}
+
+class _NoopExecutor implements CommandExecutor {
+  @override
+  Future<CommandResult> execute(String command, {String? workingDir}) async {
+    return const CommandResult(exitCode: 0, stdout: '', stderr: '');
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Bottom navigation switches between all screens', (tester) async {
     GoogleFonts.config.allowRuntimeFetching = false;
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'env_setup_done': true});
     final settingsService = SettingsService();
     await settingsService.init();
 
@@ -87,6 +100,9 @@ void main() {
           ),
           ChangeNotifierProvider<QueueManager>(
             create: (_) => FakeQueueManager(),
+          ),
+          Provider<EnvironmentService>(
+            create: (_) => FakeEnvironmentService(),
           ),
           ChangeNotifierProvider<AnalyticsManager>(
             create: (_) => AnalyticsManager(storageService: fakeStorage),
@@ -106,19 +122,19 @@ void main() {
 
     expect(find.text('Spotify Downloader'), findsOneWidget);
 
-    await tester.tap(find.text('Library'));
+    await tester.tap(find.byIcon(Icons.library_music_rounded));
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Library'), findsWidgets);
 
-    await tester.tap(find.text('Analytics'));
+    await tester.tap(find.byIcon(Icons.bar_chart_rounded));
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Analytics'), findsWidgets);
 
-    await tester.tap(find.text('Settings'));
+    await tester.tap(find.byIcon(Icons.settings_rounded));
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Settings'), findsWidgets);
 
-    await tester.tap(find.text('About'));
+    await tester.tap(find.byIcon(Icons.info_outline_rounded));
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('POWERED BY'), findsOneWidget);
   });
