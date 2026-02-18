@@ -108,7 +108,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final res = await env.oneClickSetup();
     setState(() => _checkingEnv = false);
     if (!mounted) return;
-    final message = res.isSuccess ? 'Setup complete' : 'Setup failed: ${res.stderr}';
+    final message = res.isSuccess
+        ? (res.stdout.isNotEmpty ? res.stdout : 'Setup complete')
+        : 'Setup failed: ${res.stderr}';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );

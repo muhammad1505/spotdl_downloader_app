@@ -98,11 +98,24 @@ class EnvironmentService {
     if (!taskerOk) {
       return CommandResult(exitCode: 1, stdout: '', stderr: 'Install Termux:Tasker first');
     }
-    final proot = await installProotDistro();
-    if (!proot.isSuccess) return proot;
+    final prootOk = await isProotDistroAvailable();
+    if (!prootOk) {
+      final proot = await installProotDistro();
+      if (!proot.isSuccess) return proot;
+    }
+
     final distro = await resolveDistro();
-    final distroRes = await installDistro(distro);
-    if (!distroRes.isSuccess) return distroRes;
-    return installSpotdlWithFfmpeg();
+    final distroInstalled = await hasDistro(distro);
+    if (!distroInstalled) {
+      final distroRes = await installDistro(distro);
+      if (!distroRes.isSuccess) return distroRes;
+    }
+
+    final spotdlOk = await isSpotdlAvailable();
+    if (!spotdlOk) {
+      return installSpotdlWithFfmpeg();
+    }
+
+    return CommandResult(exitCode: 0, stdout: 'Already configured', stderr: '');
   }
 }
